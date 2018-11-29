@@ -1,0 +1,40 @@
+$ git init
+$ git status
+$ git add .
+$ git commit -m 'rrr'
+
+git://github.com/f4studio/py_emulyator
+
+https://www.youtube.com/watch?v=qt-QDN3MyeM
+
+git config --global user.email onebody@mail.ru
+email@example.com
+
+
+git push -u origin master
+
+git remote. Она перечисляет список имён-сокращений для всех уже указанных удалённых дескрипторов.
+Чтобы посмотреть, какому URL соответствует сокращённое имя в Git, можно указать команде опцию -v:
+$ git remote -v
+
+https://www.youtube.com/watch?v=SZARWakrCro
+
+$ git branch rema
+
+$ git branch
+* master
+  rema
+git push origin my_awesome_branch﻿
+
+---------------------------
+$ git fetch origin
+  
+  ------------------------------
+fatal: remote origin already exists.
+
+Мне помогло сделать 
+git commit -m "initial commit", 
+ commit можно сделать только добавив почту
+git config --global user.email
+теперь я получил
+fatal: remote origin already exists.
