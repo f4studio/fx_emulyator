@@ -6,10 +6,14 @@ import matplotlib as mpl #визуализация - библиотека пос
 import matplotlib.pyplot as plt  #визуализация - библиотека построения графиков
 import math
 import csv
+from datetime import datetime, date, time
 #%matplotlib   #график выводится в отдельном окне
 from sklearn import tree
 
+import copy
 #test git commit
+
+timestamp1=datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
 
 testV=[['0.8414709848078965'], ['0.9092974268256817'], ['0.1411200080598672'], ['-0.7568024953079282'], ['-0.9589242746631385'], ['-0.27941549819892586'], ['0.6569865987187891'], ['0.9893582466233818'], ['0.4121184852417566']]
 
@@ -96,11 +100,12 @@ ofile  = open('logfile_log1_cut.txt', "rb",0)
 
 x = 0  #будем считать число значений
 count =0 # не знаю зачем это тут, напишите кто знает
-xs=[]; 
+xs=[]; # сколько у нас будет чисел считано из файла, а дальнейшем возможно длина массива + новые значения
+#print xs  # [0, 1, 2, 3, 4, 5, 6, 7, 8]  в таком виде чтоб скормить рисовалке графика
 maskLn=150
 xMult=1
 xMult2=10000
-newValWeNeed=4000
+newValWeNeed=400
 
 
 reader = csv.reader(ofile, lineterminator='\n')#csv.reader(csvfile, delimiter=' ', quotechar='|')
@@ -109,7 +114,7 @@ for row in reader:
   funcvalues.append(row)
   xs += [x]  #оказывается так можно, добавлять в массив     
   x+=1
-  if x>100000: #ограничитель тестируем
+  if x>10000: #ограничитель тестируем
     break
 
 
@@ -117,36 +122,59 @@ for row in reader:
 ##print funcvalues 
 #print funcvalues  # [ ['0.8414709848078965'], ['0.9092974268256817'], ['0.1411200080598672'] ]
             
-#print xs  # [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
 
 plt.plot(xs, funcvalues, color = 'green', linestyle = 'solid', label = 'funcvalues')
 plt.legend(loc = 'upper right')
-fig.savefig('dataset.png')
+fig.savefig('dataset_input_'+timestamp1+'.png')
 
+
+#сделать всё целыми числами, множим на xMult2  ~10000
 testV2=[]
 for cc in funcvalues:  
-  
-  #print ('=')
   testV2.append(  [ int(float(cc[0])*xMult2) ]  )
-#print testV2   
+ 
 
 
+
+############################################################################
+ #логика стратегии GoogleTraTrend
+
+#  В ПРОЦЕССЕ
+#                  длина истории в которой ищем, сколько новых значений нам надо, глубина рекурсии, начальная ширина маски 
+def GoogleTraTrend(howFar                       ,newValWeNeed                   ,rekDeep           ,startWidth           ):
+  m=0
+  arrayln=copy.deepcopy(xs)
+
+  while m<newValWeNeed:
+    m+=1
+    arrayln += [x]  #оказывается так можно, добавлять в массив     
+    x+=1 #размер массива с новым данным будет больше, нужен чтоб использовать для рисования потом 
+    #функция предсказания следующего значения
+    nO=newOne[0]+coeff
+    testV2.append( [nO] )
+
+
+############################################################################
  #логика стратегии класификатор#
 
+
+
+'''
 print('Masker...')
 # моё творчество
 features,labels = Masker(maskLn,testV2,xMult)
 ##print(features)
 ##print(labels)
-'''
-#sklearn example
-from sklearn import tree
-features=[[4,2,1],[7,3,0],[5,7,0],[5,4,1],[5,4,0],[5,4,1]]
-labels=[1,0,0,1,1,1]
-clf=tree.DecisionTreeClassifier()
-clf=clf.fit(features,labels)
-print clf.predict([[2,1,5]])
-'''
+
+##############sklearn example
+#from sklearn import tree
+#features=[[4,2,1],[7,3,0],[5,7,0],[5,4,1],[5,4,0],[5,4,1]]
+#labels=[1,0,0,1,1,1]
+#clf=tree.DecisionTreeClassifier()
+#clf=clf.fit(features,labels)
+#print clf.predict([[2,1,5]])
+###############
 print('TreeClassifier...');
 clf=tree.DecisionTreeClassifier()
 clf=clf.fit(features,labels)   #(данные - последовательность, реакция - следующее число последовательности)
@@ -157,27 +185,13 @@ print('Looking for new values...')
 m=0
 while m<newValWeNeed:
   m+=1
-
-  coeff, konchikMask= MakeMaskForEnding(testV2,maskLn,xMult)
-
-  #print("-=-=-=-=-=-=-=-=-")
-  #print konchikMask 
-  #print("---==---")
-  #print coeff 
-  #print("-=-=-=-=-=-=-=-=-")
- 
-  newOne=clf.predict(konchikMask)  # передаём новые неведаные данные и получаем предсказание следующего число последовательности
-  #print newOne[0]
-  #print xMult
-  #print coeff
-  #nO=(newOne[0]/xMult)+coeff  #  Python не так хорош и эта строка не работает
-  #nO=(coeff*10000-newOne[0])/10000
-  nO=newOne[0]+coeff
-  #print  nO
-  testV2.append( [nO] )
-  #print testV2
   xs += [x]  #оказывается так можно, добавлять в массив     
   x+=1
+  coeff, konchikMask= MakeMaskForEnding(testV2,maskLn,xMult)
+  newOne=clf.predict(konchikMask)  # передаём новые неведаные данные и получаем предсказание следующего число последовательности
+  nO=newOne[0]+coeff
+  testV2.append( [nO] )
+
 
 
 ##print testV2
@@ -188,12 +202,33 @@ while m<newValWeNeed:
 plt.axis([0, 150000, 550000, 650000])
 plt.plot(xs, testV2, color = 'red', linestyle = 'solid', label = 'funcvalues')
 plt.legend(loc = 'upper right')
-fig.savefig('dataset_new.png')
+fig.savefig('dataset_output_sklearn_'+timestamp1+'.png')
 
 
-ofile  = open('output7.csv', "wb",0)
+ofile  = open('dataset_output_sklearn_'+timestamp1+'.csv', "wb",0)
 writer = csv.writer(ofile, lineterminator='\n')
 writer.writerows(testV2)
+
+
+'''
+
+
+
+
+
+
+#написовать новый графих с новыми значениями
+plt.axis([0, 150000, 550000, 650000])
+plt.plot(xs, testV2, color = 'red', linestyle = 'solid', label = 'funcvalues')
+plt.legend(loc = 'upper right')
+fig.savefig('dataset_output_rrr_'+timestamp1+'.png')
+
+
+ofile  = open('dataset_output_rrr_'+timestamp1+'.csv', "wb",0)
+writer = csv.writer(ofile, lineterminator='\n')
+writer.writerows(testV2)
+
+
 
 
 
