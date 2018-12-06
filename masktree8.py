@@ -17,7 +17,7 @@ timestamp1=datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
 
 testV=[['0.8414709848078965'], ['0.9092974268256817'], ['0.1411200080598672'], ['-0.7568024953079282'], ['-0.9589242746631385'], ['-0.27941549819892586'], ['0.6569865987187891'], ['0.9893582466233818'], ['0.4121184852417566']]
 
-testV2=[['11'], ['13'], ['15'], ['17'], ['19'], ['21'], ['23'], ['25'], ['27']]
+originalData=[['11'], ['13'], ['15'], ['17'], ['19'], ['21'], ['23'], ['25'], ['27']]
 
 '''==============================================================================='''
 
@@ -128,9 +128,9 @@ fig.savefig('dataset_input_'+timestamp1+'.png')
 
 
 #сделать всё целыми числами, множим на xMult2  ~10000
-testV2=[]
+originalData=[]
 for cc in funcvalues:  
-  testV2.append(  [ int(float(cc[0])*xMult2) ]  )
+  originalData.append(  [ int(float(cc[0])*xMult2) ]  )
  
 
 
@@ -158,12 +158,12 @@ def GoogleTraRek(howFar #длина истории в которой ищем
   nextValuE=0
   maskFromHistory=[0]*maskLn
   while sdvigG<(howFar-maskLn):
-    coeff  =  (testV2[-1-sdviG][0])  
+    coeff  =  (originalData[-1-sdviG][0])  
     indeX=0    
     while indeX<maskLn:
-      maskFromHistory[indeX]=(  int(   ( (testV2[index-maskLn-sdviG][0])   - coeff  )*xmult )   )  # идём с конца через отрицательные индексы питона
+      maskFromHistory[indeX]=(  int(   ( (originalData[index-maskLn-sdviG][0])   - coeff  )*xmult )   )  # идём с конца через отрицательные индексы питона
       index+=1  
-    nextValuE=testV2[index-maskLn-sdviG][0]-coeff #следующие маско-значение после найденой маски
+    nextValuE=originalData[index-maskLn-sdviG][0]-coeff #следующие маско-значение после найденой маски
     
     jindeX=0    
     while jindeX<maskLn:#сравнниваем нашу и из истории, сравнивая каждое значение
@@ -193,7 +193,7 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
                   ):
   m=0
   c=copy.deepcopy(xs)
-  newdataset=copy.deepcopy(testV2)
+  newdataset=copy.deepcopy(originalData)
 
   while m<newValWeNeed:
     m+=1
@@ -213,7 +213,7 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
 '''
 print('Masker...')
 # моё творчество
-features,labels = Masker(maskLn,testV2,xMult)
+features,labels = Masker(maskLn,originalData,xMult)
 ##print(features)
 ##print(labels)
 
@@ -237,27 +237,27 @@ while m<newValWeNeed:
   m+=1
   xs += [x]  #оказывается так можно, добавлять в массив     
   x+=1
-  coeff, konchikMask= MakeMaskForEnding(testV2,maskLn,xMult)
+  coeff, konchikMask= MakeMaskForEnding(originalData,maskLn,xMult)
   newOne=clf.predict(konchikMask)  # передаём новые неведаные данные и получаем предсказание следующего число последовательности
   nO=newOne[0]+coeff
-  testV2.append( [nO] )
+  originalData.append( [nO] )
 
 
 
-##print testV2
+##print originalData
 
   #конец логика стратегии класификатор#
 
 #написовать новый графих с новыми значениями
 plt.axis([0, 150000, 550000, 650000])
-plt.plot(xs, testV2, color = 'red', linestyle = 'solid', label = 'funcvalues')
+plt.plot(xs, originalData, color = 'red', linestyle = 'solid', label = 'funcvalues')
 plt.legend(loc = 'upper right')
 fig.savefig('dataset_output_sklearn_'+timestamp1+'.png')
 
 
 ofile  = open('dataset_output_sklearn_'+timestamp1+'.csv', "wb",0)
 writer = csv.writer(ofile, lineterminator='\n')
-writer.writerows(testV2)
+writer.writerows(originalData)
 
 
 '''
@@ -269,14 +269,14 @@ writer.writerows(testV2)
 
 #написовать новый графих с новыми значениями
 plt.axis([0, 150000, 550000, 650000])
-plt.plot(xs, testV2, color = 'red', linestyle = 'solid', label = 'funcvalues')
+plt.plot(xs, originalData, color = 'red', linestyle = 'solid', label = 'funcvalues')
 plt.legend(loc = 'upper right')
 fig.savefig('dataset_output_rrr_'+timestamp1+'.png')
 
 
 ofile  = open('dataset_output_rrr_'+timestamp1+'.csv', "wb",0)
 writer = csv.writer(ofile, lineterminator='\n')
-writer.writerows(testV2)
+writer.writerows(originalData)
 
 
 
