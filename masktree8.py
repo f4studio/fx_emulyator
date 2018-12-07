@@ -63,11 +63,13 @@ def Masker(maskln, funcdata,xmult):
 #функция потом (данные, длина маски) 
 #Помните, что списки передаются как ссылки, не как глубокая копия.
 def MakeMaskForEnding(dataset1,maskLn,xmult):
+  #print dataset1  
   coeff  =  (dataset1[-1][0])  
   #print coeff
   index=0
   konchik=[]
   while index<maskLn:
+    #print dataset1[index-maskLn][0]  
     konchik.append(  int(   ( (dataset1[index-maskLn][0])   - coeff  )*xmult )   )  # берём с конца через отрицательные индексы питона
     index+=1
   maska=[]
@@ -129,12 +131,14 @@ fig.savefig('dataset_input_'+timestamp1+'.png')
 
 #сделать всё целыми числами, множим на xMult2  ~10000
 originalData=[]
+#print funcvalues
+#print("-----------------")
 for cc in funcvalues:  
-  originalData.append(  [ int(float(cc[0])*xMult2) ]  )
+  originalData.append(  [ int( round(float(cc[0])*xMult2,0) )  ]  )
  
-
-
-
+# (pyton2,7) Сегодня я потратил 8 часов чтоб в итоге всплыло вот это
+# int(100117.99999) = 100117
+# int(round(100117.99999, 0)) = 100118
 
 
 #######
@@ -146,51 +150,74 @@ def GoogleTraRek(howFar #длина истории в которой ищем
                   ,rekDeep #глубина рекурсии
                   ,maskLn #начальная ширина маски
                   ,maska
-                  ,rekStop
+                  ,rekStop #регулятор 
                   ,pogreshnosT #величина погрешности, рекомендуемые значения 1-100
-                  ):
-  #print("in rek "+str(rekDeep))
+                  ,newdataset
+                                                                                        ):
+  print("in rek "+str(rekDeep))
   if(rekStop<=rekDeep):
     print("GoogleTraRek stoped: rekStop<rekDeep")
     return 999999 
-    
+  
+   
+  
   #получить маску и следующее за ней маско-значение
   sdviG=1 # ++
-  flag=0
+  flag=1
   nextValuE=9999999
   maskFromHistory=[0]*maskLn
   while sdviG<(howFar-maskLn):#ищем совпадение маски двигаясь взад
-    coeff  =  (originalData[-1-sdviG][0])  
+    coeff  =  (newdataset[-1-sdviG][0])  
     indeX=0 
     
     #сделали маску из истории и созранили значение за ней
     while indeX<maskLn:
-      maskFromHistory[indeX]=(  int(   ( (originalData[indeX-maskLn-sdviG][0])   - coeff  )*1 )   )  # идём с конца через отрицательные индексы питона
+      maskFromHistory[indeX]=(  int(   ( (newdataset[indeX-maskLn-sdviG][0])   - coeff  )*1 )   )  # идём с конца через отрицательные индексы питона
       indeX+=1  
+    nextValuE=newdataset[indeX-maskLn-sdviG][0]-coeff #следующие маско-значение после найденой маски
     #сделали маску из истории и созранили значение за ней КОНЕЦ
+    #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
     
     
     #сравнниваем нашу и из истории, сравнивая каждое значение
     jindeX=1    
     while jindeX<=maskLn:
-      #print maskFromHistory  
-      #print maska 
+      #print maskFromHistory
+      #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
+      #print maska
+      #print("==============")
       if( (maskFromHistory[-jindeX]-pogreshnosT <= maska[0][-jindeX]) and (maskFromHistory[-jindeX]+pogreshnosT >= maska[0][-jindeX]) ):
         #print("match "+str(maskFromHistory[-jindeX]-pogreshnosT)+ " = " +str(maska[0][-jindeX]))   
-        flag=1        
+        flag=flag=1  
+        #print("flag="+str(flag) )    
       else:
-        flag=0
+        flag=flag=0
         #print("not match "+str(maskFromHistory[-jindeX]-pogreshnosT)+ " = "+ str(maska[0][-jindeX]))
+        #print("flag="+str(flag) )    
+        break
       jindeX+=1 #следующие значение в маске
-    #print("flag="+str(flag) )    
+    #print("flag last="+str(flag) )    
     #сравнниваем нашу и из истории, сравнивая каждое значение КОНЕЦ
     
     
+    #print maska
+    #print maskFromHistory   
+    
     #реагируем на совпадение или несопадение масок из истории и нашей
     if((flag==1)):#если маски совпали
-      #print("mask match")
-      GoogleTraRek(howFar,rekDeep+1,maskLn+1,maska,rekStop,pogreshnosT)
-      nextValuE=originalData[indeX-maskLn-sdviG][0]-coeff #следующие маско-значение после найденой маски
+      #print("--------------mask match")
+      print maska
+      print maskFromHistory
+      print("coeff "+str(coeff))
+      #if(depth<=rekDeep)#иначе мы тут уже были :)
+      #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
+      GoogleTraRek(howFar,rekDeep+1,maskLn+1,maska,rekStop,pogreshnosT,newdataset)
+      break
+      #return nextValuE
+      #if(depth>rekDeep):
+      #  return depth,nextValuE
+      #else:
+      #  depth,nextValuE=depth2,nextValuE2    
     #else:
       #print("mask not match")
     #реагируем на совпадение или несопадение масок из истории и нашей КОНЕЦ  
@@ -225,7 +252,8 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
     #print(maska)
     #print("coeff "+str(coeff))
     #функция предсказания следующего значения
-    nO=coeff + GoogleTraRek(x,0,maskLn,maska,rekStop,pogreshnosT)
+    #depth=0 #отслеживать глубину вложесноти рекурсии чтоб если мы на ней уже были не терять время
+    nO=coeff + GoogleTraRek(x,0,maskLn,maska,rekStop,pogreshnosT,newdataset)
     print("==========New= "+str(nO))
     newdataset.append( [nO] )
   
@@ -238,9 +266,10 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
  #логика стратегии GoogleTraTrend
 
 
-
-GoogleTraTrend(    1 #сколько новых значений нам надо
-                  ,12 #максимальная глубина рекурсии
+#print originalData
+print("-=-=-=-=-=-=-=-")
+GoogleTraTrend(    7 #сколько новых значений нам надо
+                  ,16 #максимальная глубина рекурсии
                   ,3 #начальная ширина маски
                   ,0 #величина погрешности, рекомендуемые значения 1-100   
                                                                             )
