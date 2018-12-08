@@ -14,6 +14,10 @@ import copy
 #test git commit
 
 timestamp1=datetime.strftime(datetime.now(), "%Y.%m.%d %H:%M:%S")
+logger=1 #вести лог
+log=[["Журналы."]]
+
+#####
 
 testV=[['0.8414709848078965'], ['0.9092974268256817'], ['0.1411200080598672'], ['-0.7568024953079282'], ['-0.9589242746631385'], ['-0.27941549819892586'], ['0.6569865987187891'], ['0.9893582466233818'], ['0.4121184852417566']]
 
@@ -114,7 +118,7 @@ for row in reader:
   funcvalues.append(row)
   xs += [x]  #оказывается так можно, добавлять в массив     
   x+=1
-  if x>100000: #ограничитель тестируем
+  if x>10000: #ограничитель тестируем
     break
 
 
@@ -126,7 +130,7 @@ for row in reader:
 
 plt.plot(xs, funcvalues, color = 'green', linestyle = 'solid', label = 'funcvalues')
 plt.legend(loc = 'upper right')
-fig.savefig('dataset_input_'+timestamp1+'.png')
+fig.savefig(timestamp1+'dataset_input.png')
 
 
 #сделать всё целыми числами, множим на xMult2  ~10000
@@ -145,6 +149,59 @@ for cc in funcvalues:
 # функции GoogleTraTrend
 
 
+def MaskCheckMatch(maskFromHistory
+               ,maska
+               ,pogreshnosT
+               ,maskLn
+  ):
+  #сравнниваем нашу и из истории, сравнивая каждое значение
+  jindeX=1    
+  while jindeX<maskLn:  #  
+    #print maskFromHistory
+    #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
+    #print maska
+    #print("==============")
+    #print maskLn
+    #print -jindeX
+    #print maskFromHistory
+    maskFromHistory[-jindeX]
+    maska[-jindeX]
+    if( (maskFromHistory[-jindeX]-pogreshnosT <= maska[-jindeX]) and (maskFromHistory[-jindeX]+pogreshnosT >= maska[-jindeX]) ):
+      #log.append( "match "+str(maskFromHistory[-jindeX])+ " = " +str(maska[-jindeX]))   
+      flag=flag=1  
+      #print("flag="+str(flag) )    
+    else:
+      flag=flag=0
+      #log.append( "not m "+str(maskFromHistory[-jindeX])+ " = "+ str(maska[-jindeX]))
+      #print("flag="+str(flag) )    
+      break
+    jindeX+=1 #следующие значение в маске
+  #print("flag last="+str(flag) )    
+  #сравнниваем нашу и из истории, сравнивая каждое значение КОНЕЦ
+  return flag    
+
+
+
+def MaskFromHistory(newdataset # дата из которой делаем маску
+                   ,sdviG # до какой позиции с конца, конец маски дудет эта позиция в дате
+                   ,maskLn
+                   ,maskFromHistory
+  ):# грустный смайлик
+  #maskFromHistory=[0]*maskLn
+  #сделали маску из истории и сохранили значение за ней
+  coeff  =  (newdataset[-1-sdviG][0])  
+  indeX=0
+  while indeX<maskLn:
+    maskFromHistory[indeX] = newdataset[indeX-maskLn-sdviG][0] - coeff  # идём с конца через отрицательные индексы питона
+    indeX+=1  
+  nextValuE=newdataset[indeX-maskLn-sdviG][0]-coeff #следующие маско-значение после найденой маски
+  #сделали маску из истории и созранили значение за ней КОНЕЦ
+  #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
+  return nextValuE,coeff  
+
+
+
+
 #сделать маску, искать , увеличить маску, не нашли взять последнюю найденую
 def GoogleTraRek(howFar #длина истории в которой ищем
                   ,rekDeep #глубина рекурсии
@@ -153,84 +210,58 @@ def GoogleTraRek(howFar #длина истории в которой ищем
                   ,rekStop #регулятор 
                   ,pogreshnosT #величина погрешности, рекомендуемые значения 1-100
                   ,newdataset
-                                                                                        ):
-  print("in rek "+str(rekDeep))
-  if(rekStop<=rekDeep):
-    print("GoogleTraRek stoped: rekStop<rekDeep")
-    return 999999 
-  
-   
-  
+                                                                                      ):
+  #func code
+  log.append( [ "Рекурсивный поиск. Уровень рекурсии "+str(rekDeep)] )
+  #print("in rek "+str(rekDeep))
+
+
   #получить маску и следующее за ней маско-значение
   sdviG=1 # ++
   flag=1
-  nextValuE=9999999
+  flagS=0 #надо понять не нашлось значений или закончилась рекурсия, будет 0 или 1 
+  nextValuE=99999
+  ReValuE=99999
+  reFlaG=0
   maskFromHistory=[0]*maskLn
   while sdviG<(howFar-maskLn):#ищем совпадение маски двигаясь взад
-    coeff  =  (newdataset[-1-sdviG][0])  
-    indeX=0 
     
-    #сделали маску из истории и созранили значение за ней
-    while indeX<maskLn:
-      maskFromHistory[indeX]=(  int(   ( (newdataset[indeX-maskLn-sdviG][0])   - coeff  )*1 )   )  # идём с конца через отрицательные индексы питона
-      indeX+=1  
-    nextValuE=newdataset[indeX-maskLn-sdviG][0]-coeff #следующие маско-значение после найденой маски
-    #сделали маску из истории и созранили значение за ней КОНЕЦ
-    #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
+    nextValuE,coeff=MaskFromHistory(newdataset,sdviG,maskLn,maskFromHistory)
+    log.append( [ "С позиции "+str(-1*sdviG)+" взята маска "+ str(maskFromHistory)+" coef "+str(coeff)] )   
     
+    #log.append( ["maskLn"+str(maskLn)])
+    #print("maskLn"+str(maskLn))
     
-    #сравнниваем нашу и из истории, сравнивая каждое значение
-    jindeX=1    
-    while jindeX<=maskLn:
-      #print maskFromHistory
-      #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
-      #print maska
-      #print("==============")
-      if( (maskFromHistory[-jindeX]-pogreshnosT <= maska[0][-jindeX]) and (maskFromHistory[-jindeX]+pogreshnosT >= maska[0][-jindeX]) ):
-        #print("match "+str(maskFromHistory[-jindeX]-pogreshnosT)+ " = " +str(maska[0][-jindeX]))   
-        flag=flag=1  
-        #print("flag="+str(flag) )    
-      else:
-        flag=flag=0
-        #print("not match "+str(maskFromHistory[-jindeX]-pogreshnosT)+ " = "+ str(maska[0][-jindeX]))
-        #print("flag="+str(flag) )    
-        break
-      jindeX+=1 #следующие значение в маске
-    #print("flag last="+str(flag) )    
-    #сравнниваем нашу и из истории, сравнивая каждое значение КОНЕЦ
+    flag=MaskCheckMatch(maskFromHistory,maska,pogreshnosT,maskLn)
+    log.append( [ "Сравнение последних "+str(maskLn)+" значений. Совпало="+str(flag)+" В масках "+ str(maskFromHistory) + " и " +str(maska) ])   
     
-    
-    #print maska
-    #print maskFromHistory   
+    #if(rekStop<=rekDeep):
+    #  print("GoogleTraRek skipped: rekStop<rekDeep")
+    #  log.append("GoogleTraRek skipped: rekStop<rekDeep")
     
     #реагируем на совпадение или несопадение масок из истории и нашей
     if((flag==1)):#если маски совпали
-      #print("--------------mask match")
-      print maska
-      print maskFromHistory
-      print("coeff "+str(coeff))
-      #if(depth<=rekDeep)#иначе мы тут уже были :)
-      #print("nextValuE "+str(nextValuE)+" stroka № "+str(len(newdataset)+indeX-maskLn-sdviG) )
-      GoogleTraRek(howFar,rekDeep+1,maskLn+1,maska,rekStop,pogreshnosT,newdataset)
+      flagS=1  
+      log.append( [ "Реагируем по случаю находки, запускаем GoogleTraRek, ищем маску шире" ] )  
+      ReValuE,reFlaG=GoogleTraRek(howFar,rekDeep+1,maskLn+1,maska,rekStop,pogreshnosT,newdataset)
+      log.append( [ "Куда-то упёрлись. Возврат назад внутри рекурсии. "])
       break
-      #return nextValuE
-      #if(depth>rekDeep):
-      #  return depth,nextValuE
-      #else:
-      #  depth,nextValuE=depth2,nextValuE2    
-    #else:
-      #print("mask not match")
     #реагируем на совпадение или несопадение масок из истории и нашей КОНЕЦ  
     
-  
+    
     sdviG+=1 #сдвигаемся в глубь истории
   #предупреждения      
   #if(rekDeep<5):
-    #print("GoogleTraRek() не эфективно, rekDeep не достиг хотябы 5. Need increase pogreshnosT or dataset.")         
-  return nextValuE  
+    #print("GoogleTraRek() не эфективно, rekDeep не достиг хотябы 5. Need increase pogreshnosT or dataset.")  
+    
+  if((flagS==1)and(reFlaG==1)):
+    nextValuE=ReValuE
+    
+  return nextValuE,flagS  
 
 
-
+def zzz(a):
+  return a
 
 
 #                  длина истории в которой ищем, сколько новых значений нам надо, глубина рекурсии, начальная ширина маски 
@@ -241,19 +272,31 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
                   ,rekStop #максимальная глубина рекурсии
                   ,maskLn #начальная ширина маски
                   ,pogreshnosT #величина погрешности, рекомендуемые значения 1-100
-                                                                                     ):
+                  ,arrayln
+                  ,newdataset
+                  
+                                                                                    ):
+  #func code  
   m=0
-  arrayln=copy.deepcopy(xs)
-  newdataset=copy.deepcopy(originalData)
+  a=0
+  b=0
+  log.append( [ "Запуск GoogleTraTrend "] )
   x=len(arrayln)
   while m<newValWeNeed:
     coeff,maska=MakeMaskForEnding(newdataset,maskLn+rekStop,1)
+    log.append( [ "Сделана маска для конца "+str(maska)+" coeff="+str(coeff)] )
     #print("Ending mask:")
     #print(maska)
     #print("coeff "+str(coeff))
     #функция предсказания следующего значения
     #depth=0 #отслеживать глубину вложесноти рекурсии чтоб если мы на ней уже были не терять время
-    nO=coeff + GoogleTraRek(x,0,maskLn,maska,rekStop,pogreshnosT,newdataset)
+    
+    log.append( [ "Рекурсия GoogleTraRek"] )   
+    #a,b=print 
+    a,b=(GoogleTraRek(x,0,maskLn,maska[0],rekStop,pogreshnosT,newdataset))
+    #print(type(a))
+    #print(a[0])
+    nO=coeff + a
     print("==========New= "+str(nO))
     newdataset.append( [nO] )
   
@@ -266,12 +309,18 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
  #логика стратегии GoogleTraTrend
 
 
+arrayln=copy.deepcopy(xs)
+newdataset=copy.deepcopy(originalData)
+
+
 #print originalData
 print("-=-=-=-=-=-=-=-")
-GoogleTraTrend(    7 #сколько новых значений нам надо
-                  ,16 #максимальная глубина рекурсии
+GoogleTraTrend(    8 #сколько новых значений нам надо
+                  ,18 #максимальная глубина рекурсии
                   ,3 #начальная ширина маски
-                  ,0 #величина погрешности, рекомендуемые значения 1-100   
+                  ,0 #величина погрешности, рекомендуемые значения 1-100
+                  ,arrayln
+                  ,newdataset
                                                                             )
 
 ############################################################################
@@ -340,14 +389,22 @@ writer.writerows(originalData)
 plt.axis([0, 150000, 550000, 650000])
 plt.plot(xs, originalData, color = 'red', linestyle = 'solid', label = 'funcvalues')
 plt.legend(loc = 'upper right')
-fig.savefig('dataset_output_rrr_'+timestamp1+'.png')
+fig.savefig(timestamp1+'originalData_output.png')
 
+#logi
+ofile  = open(timestamp1+'dataset_log.csv', "wb",0)
+writer = csv.writer(ofile, lineterminator='\n')
+writer.writerows(log)
 
-ofile  = open('dataset_output_rrr_'+timestamp1+'.csv', "wb",0)
+#
+ofile  = open(timestamp1+'dataset_output.csv', "wb",0)
 writer = csv.writer(ofile, lineterminator='\n')
 writer.writerows(originalData)
 
-
+#
+ofile  = open(timestamp1+'newdataset_output.csv', "wb",0)
+writer = csv.writer(ofile, lineterminator='\n')
+writer.writerows(newdataset)
 
 
 
