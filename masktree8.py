@@ -243,7 +243,13 @@ def GoogleTraRek(howFar #длина истории в которой ищем
     if((flag==1)):#если маски совпали
       flagS=1  
       log.append( [ "Реагируем по случаю находки, запускаем GoogleTraRek, ищем маску шире" ] )  
-      ReValuE,reFlaG=GoogleTraRek(howFar,rekDeep+1,maskLn+1,maska,rekStop,pogreshnosT,newdataset)
+      
+      if(rekStop<=rekDeep):
+        print("GoogleTraRek skipped: rekStop<rekDeep")
+        log.append(["GoogleTraRek skipped: rekStop<rekDeep"])      
+      else:
+        ReValuE,reFlaG=GoogleTraRek(howFar,rekDeep+1,maskLn+1,maska,rekStop,pogreshnosT,newdataset)
+      
       log.append( [ "Куда-то упёрлись. Возврат назад внутри рекурсии. "])
       break
     #реагируем на совпадение или несопадение масок из истории и нашей КОНЕЦ  
@@ -276,33 +282,37 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
                   ,newdataset
                   
                                                                                     ):
-  #func code  
-  m=0
-  a=0
-  b=0
-  log.append( [ "Запуск GoogleTraTrend "] )
-  x=len(arrayln)
-  while m<newValWeNeed:
-    coeff,maska=MakeMaskForEnding(newdataset,maskLn+rekStop,1)
-    log.append( [ "Сделана маска для конца "+str(maska)+" coeff="+str(coeff)] )
-    #print("Ending mask:")
-    #print(maska)
-    #print("coeff "+str(coeff))
-    #функция предсказания следующего значения
-    #depth=0 #отслеживать глубину вложесноти рекурсии чтоб если мы на ней уже были не терять время
+  if(rekStop+maskLn>len(newdataset)):
+    print("Слишком мало входных данных, должны хотябы превышать rekStop+maskLn. Ничего не делаю.")
+    log.append( [ "Слишком мало входных данных, должны хотябы превышать rekStop+maskLn. Ничего не делаю."])
+  else:  
+    #func code  
+    m=0
+    a=0
+    b=0
+    log.append( [ "Запуск GoogleTraTrend "] )
+    x=len(arrayln)
+    while m<newValWeNeed:
+      coeff,maska=MakeMaskForEnding(newdataset,maskLn+rekStop,1)
+      log.append( [ "Сделана маска для конца "+str(maska)+" coeff="+str(coeff)] )
+      #print("Ending mask:")
+      #print(maska)
+      #print("coeff "+str(coeff))
+      #функция предсказания следующего значения
+      #depth=0 #отслеживать глубину вложесноти рекурсии чтоб если мы на ней уже были не терять время
     
-    log.append( [ "Рекурсия GoogleTraRek"] )   
-    #a,b=print 
-    a,b=(GoogleTraRek(x,0,maskLn,maska[0],rekStop,pogreshnosT,newdataset))
-    #print(type(a))
-    #print(a[0])
-    nO=coeff + a
-    print("==========New= "+str(nO))
-    newdataset.append( [nO] )
+      log.append( [ "Рекурсия GoogleTraRek"] )   
+      #a,b=print 
+      a,b=(GoogleTraRek(x,0,maskLn,maska[0],rekStop,pogreshnosT,newdataset))
+      #print(type(a))
+      #print(a[0])
+      nO=coeff + a
+      print("==========New= "+str(nO))
+      newdataset.append( [nO] )
   
-    m+=1
-    arrayln += [x]  #оказывается так можно, добавлять в массив     
-    x+=1 #размер массива с новым данным будет больше, нужен чтоб использовать для рисования потом 
+      m+=1
+      arrayln += [x]  #оказывается так можно, добавлять в массив     
+      x+=1 #размер массива с новым данным будет больше, нужен чтоб использовать для рисования потом 
  
 
 ############################################################################
@@ -315,7 +325,7 @@ newdataset=copy.deepcopy(originalData)
 
 #print originalData
 print("-=-=-=-=-=-=-=-")
-GoogleTraTrend(    8 #сколько новых значений нам надо
+GoogleTraTrend(    10 #сколько новых значений нам надо
                   ,18 #максимальная глубина рекурсии
                   ,3 #начальная ширина маски
                   ,0 #величина погрешности, рекомендуемые значения 1-100
@@ -323,6 +333,7 @@ GoogleTraTrend(    8 #сколько новых значений нам надо
                   ,newdataset
                                                                             )
 
+print newdataset 
 ############################################################################
  #логика стратегии класификатор#
 
