@@ -118,7 +118,7 @@ for row in reader:
   funcvalues.append(row)
   xs += [x]  #оказывается так можно, добавлять в массив     
   x+=1
-  if x>100000: #ограничитель тестируем
+  if x>10000: #ограничитель тестируем
     break
 
 
@@ -290,9 +290,11 @@ def GoogleTraTrend(#howFar, #длина истории в которой ище�
  #логика стратегии GoogleTraTrend
 
 
+itemS=4
+
 arrayln=copy.deepcopy(xs)
 newdataset=copy.deepcopy(originalData)
-
+print newdataset[-5]
 print newdataset[-4]
 print newdataset[-3] 
 print newdataset[-2]
@@ -301,7 +303,7 @@ print("-=last 4=-")
 
 #print originalData
 #print("-=-=-=-=-=-=-=-")
-GoogleTraTrend(    4 #сколько новых значений нам надо
+GoogleTraTrend(    itemS #сколько новых значений нам надо
                   ,50 #максимальная глубина рекурсии     #60 с шагом 6 было отлично
                   ,3 #начальная ширина маски
                   ,0 #величина погрешности, рекомендуемые значения 1-100
@@ -318,16 +320,23 @@ def ProfitYesNo(spreD # разница на купи продай
                ,mdataset # список движений, наш предсказаный dataset туда скормим
                ,positioN #  с какой позиции с конца начинать
                                                                             ):
-  startPricE=mdataset[-positioN]
-  prosadkA,profiT=0,0
+  #print mdataset[0][0]
+  startPricE=mdataset[-positioN][0]
+  print startPricE
+  prosadkA,profiT=0,-999999
   
-  startProfiT=mdataset[-positioN]-startPricE-spreD
-  while(positioN-1):
-    profiT=mdataset[-positioN]-startPricE-spreD #если текущая позиция компенсируест спред и прибыльна то тут будет положительное число    
-       
-    
-
-  return prosadkA,profiT #просадка и прибыль
+  startProfiT=mdataset[-positioN][0]-startPricE-spreD
+  positioN-=1
+  while(positioN):
+    print mdataset[-positioN][0]
+    tempProfiT=mdataset[-positioN][0]-startPricE-spreD #если текущая позиция компенсируест спред и прибыльна то тут будет положительное число    
+    if(tempProfiT>profiT):
+      profiT=tempProfiT      
+    if(startPricE>mdataset[-positioN][0]):
+      if(startPricE-mdataset[-positioN][0]>prosadkA):  
+        prosadkA=startPricE-mdataset[-positioN][0]      
+    positioN-=1
+  return prosadkA,profiT #просадка и прибыль с учётом спреда
 
 
 #####
@@ -335,6 +344,11 @@ def ProfitYesNo(spreD # разница на купи продай
 
 spreD=2000
 
+#print newdataset
+
+prosadkA1,profiT1 = ProfitYesNo(spreD,newdataset,itemS)
+
+print(" Prosadka="+str(prosadkA1)+" Profit="+str(profiT1)+" " )
 
 
 ############################################################################
