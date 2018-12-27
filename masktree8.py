@@ -90,17 +90,15 @@ def MakeMaskForEnding(dataset1,maskLn,xmult):
 
 
 funcvalues=[] #массив под значения функции
+prognaziruemaya=[] #массив под значения функции
+proX=[]
 
 print('Hello world')
 dpi = 80    #число точек на дюйм в изображении
 fig = plt.figure(dpi = dpi, figsize = (1012 / dpi, 484 / dpi) )#размер судя по всему в дюймах
 plt.rcParams.update({'font.size': 10})
 
-plt.axis([0, 150000, 55, 65])
-##plt.axis([0, 140, 0, 140])
 
-#ofile  = open('test1122.csv', "rb",0)
-ofile  = open('logfile_log1_cut.txt', "rb",0)  #     testovaya_data1.txt
 
 x = 0  #будем считать число значений
 count =0 # не знаю зачем это тут, напишите кто знает
@@ -109,18 +107,32 @@ xs=[]; # сколько у нас будет чисел считано из фа
 maskLn=150
 xMult=1
 xMult2=10000
-newValWeNeed=400
+newValWeNeed=400  #for sklearn
 
 
+#большой файл с историей прогнозов на его основе 
+x=0
+ofile  = open('logfile_log1_cut.txt', "rb",0)  #     testovaya_data1.txt
 reader = csv.reader(ofile, lineterminator='\n')#csv.reader(csvfile, delimiter=' ', quotechar='|')
 for row in reader: 
   #print row, reader 
   funcvalues.append(row)
   xs += [x]  #оказывается так можно, добавлять в массив     
   x+=1
-  if x>10000: #ограничитель тестируем
+  if x>90500: #ограничитель тестируем
     break
 
+'''
+#прогназируемая функция
+x=0
+ofile  = open('/home/avs/ask/test700.txt', "rb",0)  #     testovaya_data1.txt
+reader = csv.reader(ofile, lineterminator='\n')#csv.reader(csvfile, delimiter=' ', quotechar='|')
+for row in reader: 
+  #print row, reader 
+  prognaziruemaya.append(row)
+  proX += [x]   
+  x+=1
+'''
 
 
 ##print funcvalues 
@@ -128,9 +140,6 @@ for row in reader:
             
 
 
-plt.plot(xs, funcvalues, color = 'green', linestyle = 'solid', label = 'funcvalues')
-plt.legend(loc = 'upper right')
-fig.savefig(timestamp1+'dataset_input.png')
 
 
 #сделать всё целыми числами, множим на xMult2  ~10000
@@ -139,10 +148,13 @@ originalData=[]
 #print("-----------------")
 for cc in funcvalues:  
   originalData.append(  [ int( round(float(cc[0])*xMult2,0) )  ]  )
- 
 # (pyton2,7) Сегодня я потратил 8 часов чтоб в итоге всплыло вот это
 # int(100117.99999) = 100117
 # int(round(100117.99999, 0)) = 100118
+plt.axis([80000, 100000, 580000, 620000])
+plt.plot(xs, originalData, color = 'green', linestyle = 'solid', label = 'funcvalues')
+plt.legend(loc = 'upper right')
+fig.savefig(timestamp1+'dataset_input_2.png')
 
 
 #######
@@ -326,9 +338,10 @@ def ProfitYesNo(spreD # разница на купи продай
 # MAIN ЧАСТЬ 
 #будем  зацикливать
 
-itemS=4
-spreD=2000
-moneY=1000
+itemS=250 #предсказать значений
+spreD=1500
+moneY=1000 #скотлько у нас $ куплено
+pointS=4000 #считать прибыльным движение в 
 
 arrayln=copy.deepcopy(xs)
 newdataset=copy.deepcopy(originalData)
@@ -344,7 +357,7 @@ print("-=last 4=-")
 GoogleTraTrend(    itemS #сколько новых значений нам надо
                   ,50 #максимальная глубина рекурсии     #60 с шагом 6 было отлично
                   ,3 #начальная ширина маски
-                  ,0 #величина погрешности, рекомендуемые значения 1-100
+                  ,0 #величина погрешности
                   ,arrayln
                   ,newdataset
                                                                             )
@@ -365,10 +378,14 @@ print(" Prosadka="+str(prosadkA1)+" Profit="+str(profiT1)+" " )
 #если 1400$ баксов то (1*0.0001/startPricE)*1400$ прибыль = 0.00205$=0.13RUR
 #если 1000 то 0.0014$ 0.09 RUR  при движении на 2000 пунктов 2.8$
 #spred 1500 min lost 2.1$, будем охотится на движение >4000
-
-if(profiT1>4000):
-  log.append(["startPricE="+str(startPricE)+" profiT points="+str(profiT1)+" moneY="+str(moneY)])
-  log.append(["Ожидаемая прибыль="+str( (0.0001/startPricE)*moneY*profiT1 )])
+if(1):
+#if(profiT1>pointS):
+  expect="startPricE="+str(startPricE1)+", profiT points="+str(profiT1)+", point price="+str(0.0001/startPricE1)+", moneY="+str(moneY)    
+  log.append([expect])
+  print expect
+  expect="Ожидаемая прибыль $ ="+str( (0.0001/startPricE1)*moneY*profiT1*pointS )
+  log.append([expect])
+  print expect
   #log+moneY
   #пишем в файл
 
@@ -434,13 +451,9 @@ writer.writerows(originalData)
 '''
 
 
-
-
-
-
 #написовать новый графих с новыми значениями
-plt.axis([0, 150000, 55, 65])
-#plt.axis([99000, 101000, 590000, 600000])
+#plt.axis([0, 150000, 55, 65])
+plt.axis([80000, 100000,580000, 620000])
 plt.plot(arrayln, newdataset, color = 'red', linestyle = 'solid', label = 'funcvalues')
 plt.legend(loc = 'upper right')
 fig.savefig(timestamp1+'newdataset_output.png')
